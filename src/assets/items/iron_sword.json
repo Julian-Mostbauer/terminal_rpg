@@ -1,0 +1,9 @@
+{
+    "name": "iron sword",
+    "item_type": "Weapon",
+    "item_sub_type": "Sword",
+    "weight": 15,
+    "damage": 5,
+    "cost" : 50
+
+}

@@ -1,9 +1,10 @@
 /* Refrences, Todos, Infos
     Todo:
-    -   Make the game lol
+    -   Save characters to json-file
 
     Refrences:
     -   https://donjon.bin.sh/fantasy/name/#type=set
+    -   https://reintech.io/blog/working-with-json-in-rust
 
 */
 #![allow(dead_code)]
@@ -11,11 +12,9 @@
 // CHARACTER CREATION MODULE
 // -----------------------------------------------------------------------------------------
 pub mod character {
-    use rand::{
-        distributions::{Distribution, Standard},
-        Rng,
-    };
-
+    use rand::distributions::{Distribution, Standard};
+    use rand::Rng;
+    use serde::Deserialize;
     /* Races --------------------------------------------------------------------------------------*/
     #[derive(Debug)]
     pub enum Races {
@@ -152,7 +151,7 @@ pub mod character {
     impl Inventory {}
 
     /* Item struct --------------------------------------------------------------------------------------*/
-    #[derive(Debug)]
+    #[derive(Debug, Deserialize)]
     pub enum ItemTypes {
         ErrorItemType,
         Weapon,
@@ -167,7 +166,7 @@ pub mod character {
             }
         }
     }
-    #[derive(Debug)]
+    #[derive(Debug, Deserialize)]
     pub enum ItemSubTypes {
         ErrorItemSubType,
         Axe,
@@ -187,14 +186,14 @@ pub mod character {
         }
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, Deserialize)]
     pub struct Item {
         name: String,
 
         item_type: ItemTypes,
         item_sub_type: ItemSubTypes,
 
-        weigth: u32,
+        weight: u32,
         damage: u32,
         cost: u32,
     }
@@ -211,7 +210,7 @@ pub mod character {
                 name: name_param,
                 item_type: type_param,
                 item_sub_type: sub_type_param,
-                weigth: weight_param,
+                weight: weight_param,
                 damage: damage_param,
                 cost: cost_param,
             }
@@ -220,16 +219,35 @@ pub mod character {
     pub mod item_maker {
         use crate::game_features::character::*;
         use crate::game_features::dice;
-        use crate::game_features::helper_module::str;
+        use crate::game_features::helper_module;
+
         pub fn new_random_item() -> Item {
             Item::new(
-                str!("a"),
+                helper_module::str!("a"),
                 rand::random(),
                 rand::random(),
                 dice::d20(),
                 dice::d20(),
                 dice::d100(),
             )
+        }
+        use std::error::Error;
+
+        fn load_item_from_json(file_name: &str) -> Result<Item, Box<dyn Error>> {
+            let data = helper_module::io::read_file(&format!(
+            "C:\\Users\\julia\\OneDrive\\Dokumente\\GitHub\\terminal_rpg\\src\\assets\\items\\{}.json",
+            file_name
+            ));
+
+            let new_item: Result<Item, serde_json::Error> = serde_json::from_str(&data);
+            match new_item {
+                Ok(item) => Ok(item),
+                Err(e) => Err(Box::new(e)),
+            }
+        }
+
+        pub fn gen_item_from_file(file_name: &str) -> Item {
+            load_item_from_json(file_name).unwrap()
         }
     }
 
@@ -453,6 +471,11 @@ pub mod helper_module {
             }
         }
 
+        pub fn read_file(path: &str) -> String {
+            use std::fs;
+            fs::read_to_string(path).expect("Should have been able to read the file")
+        }
+
         pub fn reapeat_str(text: &str, amount: usize) -> String {
             let char_collection: Vec<&str> = vec![text; amount];
             char_collection.concat()
@@ -473,8 +496,8 @@ pub mod helper_module {
             let mut input = read_string(prompt);
             loop {
                 match input.parse::<T>() {
-                    Ok(T) => return input.parse::<T>().unwrap(),
-                    Err(T) => {
+                    Ok(_t) => return input.parse::<T>().unwrap(),
+                    Err(_t) => {
                         println!(
                             "{}",
                             make_colored("INVALID", helper_module::io::Colors::Red)
