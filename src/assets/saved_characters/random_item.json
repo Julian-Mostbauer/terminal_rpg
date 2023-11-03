@@ -1,8 +1,1 @@
-{
-  "name": "a",
-  "item_type": "Weapon",
-  "item_sub_type": "Hamer",
-  "weight": 14,
-  "damage": 6,
-  "cost": 16
-}
+{"name":"Godly Bow","item_type":"Weapon","item_sub_type":"Shield","weight":6,"damage":17,"cost":2}

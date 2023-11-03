@@ -231,7 +231,7 @@ pub mod character {
 
         pub fn new_random_item() -> Item {
             Item::new(
-                helper_module::str!("a"),
+                helper_module::str!(helper_module::random_names::random_item_name()),
                 rand::random(),
                 rand::random(),
                 dice::d20(),
@@ -269,7 +269,7 @@ pub mod character {
     pub mod entity_maker {
         use crate::game_features::character::*;
         use crate::game_features::dice;
-        use crate::game_features::helper_module::random_name;
+        use crate::game_features::helper_module::random_names::random_entity_name;
 
         pub fn make_rand_barbarian_hord(count: u32) -> Vec<Entity> {
             let mut hord: Vec<Entity> = Vec::new();
@@ -286,7 +286,7 @@ pub mod character {
                 weight: 0,
             };
             Entity {
-                name: random_name(),
+                name: random_entity_name(),
                 class: Classes::Barbarian,
                 race: rand::random(),
                 lvl: dice::d20(),
@@ -342,7 +342,6 @@ pub mod dice {
 // HELPER MODULE
 // -----------------------------------------------------------------------------------------
 pub mod helper_module {
-    use crate::game_features::dice;
     /* Macros --------------------------------------------------------------------------------------*/
     macro_rules! str {
         ($a: expr) => {
@@ -351,109 +350,125 @@ pub mod helper_module {
     }
     pub use str;
 
-    pub fn random_name() -> String {
-        let possible_names: Vec<String> = vec![
-            str!("Alden"),
-            str!("Alec"),
-            str!("Anton"),
-            str!("Arden"),
-            str!("Arlen"),
-            str!("Armand"),
-            str!("Arron"),
-            str!("Augustus"),
-            str!("Avery"),
-            str!("Benedict"),
-            str!("Bennett"),
-            str!("Branden"),
-            str!("Brendon"),
-            str!("Britt"),
-            str!("Broderick"),
-            str!("Carter"),
-            str!("Chadwick"),
-            str!("Chas"),
-            str!("Chet"),
-            str!("Colby"),
-            str!("Cordell"),
-            str!("Dalton"),
-            str!("Damien"),
-            str!("Dante"),
-            str!("Darell"),
-            str!("Darius"),
-            str!("Darron"),
-            str!("Darwin"),
-            str!("Dewitt"),
-            str!("Diego"),
-            str!("Dillon"),
-            str!("Dirk"),
-            str!("Domenic"),
-            str!("Donovan"),
-            str!("Dorian"),
-            str!("Dorsey"),
-            str!("Edison"),
-            str!("Elden"),
-            str!("Elvin"),
-            str!("Erich"),
-            str!("Galen"),
-            str!("Garret"),
-            str!("Gaston"),
-            str!("Gavin"),
-            str!("German"),
-            str!("Graham"),
-            str!("Hal"),
-            str!("Hank"),
-            str!("Harlan"),
-            str!("Hayden"),
-            str!("Herschel"),
-            str!("Hoyt"),
-            str!("Hunter"),
-            str!("Isaias"),
-            str!("Issac"),
-            str!("Jacinto"),
-            str!("Jarred"),
-            str!("Jonas"),
-            str!("Kendrick"),
-            str!("Keneth"),
-            str!("Kennith"),
-            str!("Keven"),
-            str!("Leif"),
-            str!("Lenard"),
-            str!("Lincoln"),
-            str!("Linwood"),
-            str!("Lucius"),
-            str!("Lynwood"),
-            str!("Malcolm"),
-            str!("Malik"),
-            str!("Maxwell"),
-            str!("McKinley"),
-            str!("Merlin"),
-            str!("Merrill"),
-            str!("Michal"),
-            str!("Monty"),
-            str!("Newton"),
-            str!("Nolan"),
-            str!("Porter"),
-            str!("Quinton"),
-            str!("Raphael"),
-            str!("Reid"),
-            str!("Rory"),
-            str!("Scotty"),
-            str!("Shad"),
-            str!("Stanton"),
-            str!("Stefan"),
-            str!("Thaddeus"),
-            str!("Tobias"),
-            str!("Trenton"),
-            str!("Vance"),
-            str!("Walker"),
-            str!("Walton"),
-            str!("Weldon"),
-            str!("Wes"),
-            str!("Weston"),
-            str!("Willian"),
-            str!("Winford"),
-            str!("Wyatt"),
-        ];
-        possible_names[dice::dn(possible_names.len() as u32 - 1) as usize].clone()
+    pub mod random_names {
+        use crate::game_features::dice;
+
+        pub fn random_entity_name() -> String {
+            let possible_names: Vec<String> = vec![
+                str!("Alden"),
+                str!("Alec"),
+                str!("Anton"),
+                str!("Arden"),
+                str!("Arlen"),
+                str!("Armand"),
+                str!("Arron"),
+                str!("Augustus"),
+                str!("Avery"),
+                str!("Benedict"),
+                str!("Bennett"),
+                str!("Branden"),
+                str!("Brendon"),
+                str!("Britt"),
+                str!("Broderick"),
+                str!("Carter"),
+                str!("Chadwick"),
+                str!("Chas"),
+                str!("Chet"),
+                str!("Colby"),
+                str!("Cordell"),
+                str!("Dalton"),
+                str!("Damien"),
+                str!("Dante"),
+                str!("Darell"),
+                str!("Darius"),
+                str!("Darron"),
+                str!("Darwin"),
+                str!("Dewitt"),
+                str!("Diego"),
+                str!("Dillon"),
+                str!("Dirk"),
+                str!("Domenic"),
+                str!("Donovan"),
+                str!("Dorian"),
+                str!("Dorsey"),
+                str!("Edison"),
+                str!("Elden"),
+                str!("Elvin"),
+                str!("Erich"),
+                str!("Galen"),
+                str!("Garret"),
+                str!("Gaston"),
+                str!("Gavin"),
+                str!("German"),
+                str!("Graham"),
+                str!("Hal"),
+                str!("Hank"),
+                str!("Harlan"),
+                str!("Hayden"),
+                str!("Herschel"),
+                str!("Hoyt"),
+                str!("Hunter"),
+                str!("Isaias"),
+                str!("Issac"),
+                str!("Jacinto"),
+                str!("Jarred"),
+                str!("Jonas"),
+                str!("Kendrick"),
+                str!("Keneth"),
+                str!("Kennith"),
+                str!("Keven"),
+                str!("Leif"),
+                str!("Lenard"),
+                str!("Lincoln"),
+                str!("Linwood"),
+                str!("Lucius"),
+                str!("Lynwood"),
+                str!("Malcolm"),
+                str!("Malik"),
+                str!("Maxwell"),
+                str!("McKinley"),
+                str!("Merlin"),
+                str!("Merrill"),
+                str!("Michal"),
+                str!("Monty"),
+                str!("Newton"),
+                str!("Nolan"),
+                str!("Porter"),
+                str!("Quinton"),
+                str!("Raphael"),
+                str!("Reid"),
+                str!("Rory"),
+                str!("Scotty"),
+                str!("Shad"),
+                str!("Stanton"),
+                str!("Stefan"),
+                str!("Thaddeus"),
+                str!("Tobias"),
+                str!("Trenton"),
+                str!("Vance"),
+                str!("Walker"),
+                str!("Walton"),
+                str!("Weldon"),
+                str!("Wes"),
+                str!("Weston"),
+                str!("Willian"),
+                str!("Winford"),
+                str!("Wyatt"),
+            ];
+            possible_names[dice::dn(possible_names.len() as u32 - 1) as usize].clone()
+        }
+
+        pub fn random_item_name() -> String {
+            let object_pre: Vec<String> =
+                vec![str!("Mighty"), str!("Evil"), str!("Godly"), str!("Fierce")];
+            let object_names: Vec<String> =
+                vec![str!("Road"), str!("Sword"), str!("Axe"), str!("Bow")];
+            format!(
+                "{} {}",
+                object_pre[dice::dn(object_pre.len() as u32 - 1) as usize],
+                object_names[dice::dn(object_names.len() as u32 - 1) as usize],
+            )
+        }
     }
     // -----------------------------------------------------------------------------------------
     // IO MODULE
