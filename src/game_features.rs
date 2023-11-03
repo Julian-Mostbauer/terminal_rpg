@@ -1,6 +1,6 @@
 /* Refrences, Todos, Infos
     Todo:
-    -   Save characters to json-file
+    -   Implement random names for everything
 
     Refrences:
     -   https://donjon.bin.sh/fantasy/name/#type=set
@@ -14,9 +14,9 @@
 pub mod character {
     use rand::distributions::{Distribution, Standard};
     use rand::Rng;
-    use serde::Deserialize;
+    use serde::{Deserialize, Serialize};
     /* Races --------------------------------------------------------------------------------------*/
-    #[derive(Debug)]
+    #[derive(Debug, Deserialize, Serialize)]
     pub enum Races {
         ErrorRace,
         Human,
@@ -48,7 +48,7 @@ pub mod character {
     }
 
     /* Classes --------------------------------------------------------------------------------------*/
-    #[derive(Debug)]
+    #[derive(Debug, Deserialize, Serialize)]
     pub enum Classes {
         ErrorClass,
         Barbarian,
@@ -88,7 +88,7 @@ pub mod character {
     }
 
     /* Abilities --------------------------------------------------------------------------------------*/
-    #[derive(Debug)]
+    #[derive(Debug, Deserialize, Serialize)]
     pub enum Abilities {
         ErrorAbility,
         Rage,
@@ -104,7 +104,7 @@ pub mod character {
     }
 
     /* Spells --------------------------------------------------------------------------------------*/
-    #[derive(Debug)]
+    #[derive(Debug, Deserialize, Serialize)]
     pub enum Spells {
         ErrorSpell,
         Fireball,
@@ -119,7 +119,7 @@ pub mod character {
         }
     }
     /* Entety struct --------------------------------------------------------------------------------------*/
-    #[derive(Debug)]
+    #[derive(Debug, Deserialize, Serialize)]
     pub struct Entity {
         name: String,
 
@@ -143,36 +143,40 @@ pub mod character {
     }
     impl Entity {}
     /* Inventory struct --------------------------------------------------------------------------------------*/
-    #[derive(Debug)]
+    #[derive(Debug, Deserialize, Serialize)]
     pub struct Inventory {
         items: Vec<Item>,
         weight: u32,
     }
     impl Inventory {}
 
-    /* Item struct --------------------------------------------------------------------------------------*/
-    #[derive(Debug, Deserialize)]
+    /* Item Types --------------------------------------------------------------------------------------*/
+    #[derive(Debug, Deserialize, Serialize)]
     pub enum ItemTypes {
         ErrorItemType,
         Weapon,
         Tool,
+        Utensil,
     }
     impl Distribution<ItemTypes> for Standard {
         fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> ItemTypes {
-            match rng.gen_range(0..=1) {
+            match rng.gen_range(0..=2) {
                 0 => ItemTypes::Weapon,
                 1 => ItemTypes::Weapon,
+                2 => ItemTypes::Utensil,
                 _ => ItemTypes::ErrorItemType,
             }
         }
     }
-    #[derive(Debug, Deserialize)]
+    /* Item Sub Types --------------------------------------------------------------------------------------*/
+    #[derive(Debug, Deserialize, Serialize)]
     pub enum ItemSubTypes {
         ErrorItemSubType,
         Axe,
         Sword,
         Shield,
         Hamer,
+        Food,
     }
     impl Distribution<ItemSubTypes> for Standard {
         fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> ItemSubTypes {
@@ -185,8 +189,8 @@ pub mod character {
             }
         }
     }
-
-    #[derive(Debug, Deserialize)]
+    /* Item struct --------------------------------------------------------------------------------------*/
+    #[derive(Debug, Deserialize, Serialize)]
     pub struct Item {
         name: String,
 
@@ -216,10 +220,14 @@ pub mod character {
             }
         }
     }
+    // -----------------------------------------------------------------------------------------
+    // Item Maker MODULE
+    // -----------------------------------------------------------------------------------------
     pub mod item_maker {
         use crate::game_features::character::*;
         use crate::game_features::dice;
         use crate::game_features::helper_module;
+        use crate::game_features::helper_module::save_n_load;
 
         pub fn new_random_item() -> Item {
             Item::new(
@@ -231,23 +239,27 @@ pub mod character {
                 dice::d100(),
             )
         }
-        use std::error::Error;
-
-        fn load_item_from_json(file_name: &str) -> Result<Item, Box<dyn Error>> {
-            let data = helper_module::io::read_file(&format!(
-            "C:\\Users\\julia\\OneDrive\\Dokumente\\GitHub\\terminal_rpg\\src\\assets\\items\\{}.json",
-            file_name
-            ));
-
-            let new_item: Result<Item, serde_json::Error> = serde_json::from_str(&data);
-            match new_item {
-                Ok(item) => Ok(item),
-                Err(e) => Err(Box::new(e)),
-            }
-        }
 
         pub fn gen_item_from_file(file_name: &str) -> Item {
-            load_item_from_json(file_name).unwrap()
+            save_n_load::load_struct_from_json(file_name).unwrap()
+        }
+
+        pub fn gen_whole_folder() -> Vec<Item> {
+            use std::fs;
+
+            let paths = fs::read_dir(
+                "C:\\Users\\julia\\OneDrive\\Dokumente\\GitHub\\terminal_rpg\\src\\assets\\items",
+            )
+            .unwrap();
+
+            let mut items: Vec<Item> = Vec::new();
+
+            for file in paths {
+                let file_name = helper_module::str!(file.unwrap().path().display());
+                println!("{file_name}");
+                items.push(gen_item_from_file(&file_name));
+            }
+            items
         }
     }
 
@@ -257,112 +269,7 @@ pub mod character {
     pub mod entity_maker {
         use crate::game_features::character::*;
         use crate::game_features::dice;
-        use crate::game_features::helper_module::str;
-
-        pub fn random_name() -> String {
-            let possible_names: Vec<String> = vec![
-                str!("Alden"),
-                str!("Alec"),
-                str!("Anton"),
-                str!("Arden"),
-                str!("Arlen"),
-                str!("Armand"),
-                str!("Arron"),
-                str!("Augustus"),
-                str!("Avery"),
-                str!("Benedict"),
-                str!("Bennett"),
-                str!("Branden"),
-                str!("Brendon"),
-                str!("Britt"),
-                str!("Broderick"),
-                str!("Carter"),
-                str!("Chadwick"),
-                str!("Chas"),
-                str!("Chet"),
-                str!("Colby"),
-                str!("Cordell"),
-                str!("Dalton"),
-                str!("Damien"),
-                str!("Dante"),
-                str!("Darell"),
-                str!("Darius"),
-                str!("Darron"),
-                str!("Darwin"),
-                str!("Dewitt"),
-                str!("Diego"),
-                str!("Dillon"),
-                str!("Dirk"),
-                str!("Domenic"),
-                str!("Donovan"),
-                str!("Dorian"),
-                str!("Dorsey"),
-                str!("Edison"),
-                str!("Elden"),
-                str!("Elvin"),
-                str!("Erich"),
-                str!("Galen"),
-                str!("Garret"),
-                str!("Gaston"),
-                str!("Gavin"),
-                str!("German"),
-                str!("Graham"),
-                str!("Hal"),
-                str!("Hank"),
-                str!("Harlan"),
-                str!("Hayden"),
-                str!("Herschel"),
-                str!("Hoyt"),
-                str!("Hunter"),
-                str!("Isaias"),
-                str!("Issac"),
-                str!("Jacinto"),
-                str!("Jarred"),
-                str!("Jonas"),
-                str!("Kendrick"),
-                str!("Keneth"),
-                str!("Kennith"),
-                str!("Keven"),
-                str!("Leif"),
-                str!("Lenard"),
-                str!("Lincoln"),
-                str!("Linwood"),
-                str!("Lucius"),
-                str!("Lynwood"),
-                str!("Malcolm"),
-                str!("Malik"),
-                str!("Maxwell"),
-                str!("McKinley"),
-                str!("Merlin"),
-                str!("Merrill"),
-                str!("Michal"),
-                str!("Monty"),
-                str!("Newton"),
-                str!("Nolan"),
-                str!("Porter"),
-                str!("Quinton"),
-                str!("Raphael"),
-                str!("Reid"),
-                str!("Rory"),
-                str!("Scotty"),
-                str!("Shad"),
-                str!("Stanton"),
-                str!("Stefan"),
-                str!("Thaddeus"),
-                str!("Tobias"),
-                str!("Trenton"),
-                str!("Vance"),
-                str!("Walker"),
-                str!("Walton"),
-                str!("Weldon"),
-                str!("Wes"),
-                str!("Weston"),
-                str!("Willian"),
-                str!("Winford"),
-                str!("Wyatt"),
-            ];
-            possible_names[dice::dn(possible_names.len() as u32 - 1) as usize].clone()
-        }
+        use crate::game_features::helper_module::random_name;
 
         pub fn make_rand_barbarian_hord(count: u32) -> Vec<Entity> {
             let mut hord: Vec<Entity> = Vec::new();
@@ -394,7 +301,7 @@ pub mod character {
                 spell_points: 0,
 
                 abilities: barb_abilities,
-                spells: vec![],
+                spells: Vec::new(),
 
                 inventory: barb_inventory,
             }
@@ -435,7 +342,7 @@ pub mod dice {
 // HELPER MODULE
 // -----------------------------------------------------------------------------------------
 pub mod helper_module {
-
+    use crate::game_features::dice;
     /* Macros --------------------------------------------------------------------------------------*/
     macro_rules! str {
         ($a: expr) => {
@@ -443,7 +350,114 @@ pub mod helper_module {
         };
     }
     pub use str;
-    // Structs
+
+    pub fn random_name() -> String {
+        let possible_names: Vec<String> = vec![
+            str!("Alden"),
+            str!("Alec"),
+            str!("Anton"),
+            str!("Arden"),
+            str!("Arlen"),
+            str!("Armand"),
+            str!("Arron"),
+            str!("Augustus"),
+            str!("Avery"),
+            str!("Benedict"),
+            str!("Bennett"),
+            str!("Branden"),
+            str!("Brendon"),
+            str!("Britt"),
+            str!("Broderick"),
+            str!("Carter"),
+            str!("Chadwick"),
+            str!("Chas"),
+            str!("Chet"),
+            str!("Colby"),
+            str!("Cordell"),
+            str!("Dalton"),
+            str!("Damien"),
+            str!("Dante"),
+            str!("Darell"),
+            str!("Darius"),
+            str!("Darron"),
+            str!("Darwin"),
+            str!("Dewitt"),
+            str!("Diego"),
+            str!("Dillon"),
+            str!("Dirk"),
+            str!("Domenic"),
+            str!("Donovan"),
+            str!("Dorian"),
+            str!("Dorsey"),
+            str!("Edison"),
+            str!("Elden"),
+            str!("Elvin"),
+            str!("Erich"),
+            str!("Galen"),
+            str!("Garret"),
+            str!("Gaston"),
+            str!("Gavin"),
+            str!("German"),
+            str!("Graham"),
+            str!("Hal"),
+            str!("Hank"),
+            str!("Harlan"),
+            str!("Hayden"),
+            str!("Herschel"),
+            str!("Hoyt"),
+            str!("Hunter"),
+            str!("Isaias"),
+            str!("Issac"),
+            str!("Jacinto"),
+            str!("Jarred"),
+            str!("Jonas"),
+            str!("Kendrick"),
+            str!("Keneth"),
+            str!("Kennith"),
+            str!("Keven"),
+            str!("Leif"),
+            str!("Lenard"),
+            str!("Lincoln"),
+            str!("Linwood"),
+            str!("Lucius"),
+            str!("Lynwood"),
+            str!("Malcolm"),
+            str!("Malik"),
+            str!("Maxwell"),
+            str!("McKinley"),
+            str!("Merlin"),
+            str!("Merrill"),
+            str!("Michal"),
+            str!("Monty"),
+            str!("Newton"),
+            str!("Nolan"),
+            str!("Porter"),
+            str!("Quinton"),
+            str!("Raphael"),
+            str!("Reid"),
+            str!("Rory"),
+            str!("Scotty"),
+            str!("Shad"),
+            str!("Stanton"),
+            str!("Stefan"),
+            str!("Thaddeus"),
+            str!("Tobias"),
+            str!("Trenton"),
+            str!("Vance"),
+            str!("Walker"),
+            str!("Walton"),
+            str!("Weldon"),
+            str!("Wes"),
+            str!("Weston"),
+            str!("Willian"),
+            str!("Winford"),
+            str!("Wyatt"),
+        ];
+        possible_names[dice::dn(possible_names.len() as u32 - 1) as usize].clone()
+    }
+    // -----------------------------------------------------------------------------------------
+    // IO MODULE
+    // -----------------------------------------------------------------------------------------
     pub mod io {
         use num_traits::Num;
 
@@ -469,11 +483,6 @@ pub mod helper_module {
                 Colors::Cyan => format!("\x1b[36m{}\x1b[0m", text),
                 Colors::White => format!("\x1b[37m{}\x1b[0m", text),
             }
-        }
-
-        pub fn read_file(path: &str) -> String {
-            use std::fs;
-            fs::read_to_string(path).expect("Should have been able to read the file")
         }
 
         pub fn reapeat_str(text: &str, amount: usize) -> String {
@@ -522,6 +531,43 @@ pub mod helper_module {
                     io::make_colored(&reapeat_str("-", 50), io::Colors::Red)
                 );
             }
+        }
+    }
+    // -----------------------------------------------------------------------------------------
+    // SAVE N LOAD MODULE
+    // -----------------------------------------------------------------------------------------
+    pub mod save_n_load {
+        use std::error::Error;
+        use std::fs;
+
+        //use crate::game_features::character::*;
+        use crate::game_features::helper_module;
+
+        pub fn read_file(path: &str) -> String {
+            fs::read_to_string(path).expect("Should have been able to read the file")
+        }
+
+        pub fn load_struct_from_json<T: serde::de::DeserializeOwned>(
+            file_name: &str,
+        ) -> Result<T, Box<dyn Error>> {
+            let data = read_file(&helper_module::str!(file_name));
+
+            let obj: Result<T, serde_json::Error> = serde_json::from_str(&data);
+            match obj {
+                Ok(item) => Ok(item),
+                Err(e) => Err(Box::new(e)),
+            }
+        }
+
+        pub fn serialize_struct_to_json<T: serde::ser::Serialize>(
+            obj: &T,
+        ) -> Result<String, Box<dyn serde::ser::StdError>> {
+            let j = serde_json::to_string(&obj)?;
+            Ok(j)
+        }
+
+        pub fn write_json_to_file(file_name: &str, json: &str) {
+            fs::write(format!("C:\\Users\\julia\\OneDrive\\Dokumente\\GitHub\\terminal_rpg\\src\\assets\\saved_characters\\{}", file_name), json).expect("Unable to write file");
         }
     }
 }

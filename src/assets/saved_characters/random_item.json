@@ -1,0 +1,8 @@
+{
+  "name": "a",
+  "item_type": "Weapon",
+  "item_sub_type": "Hamer",
+  "weight": 14,
+  "damage": 6,
+  "cost": 16
+}

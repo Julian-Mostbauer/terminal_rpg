@@ -1,9 +1,15 @@
 mod game_features;
-use game_features::helper_module::io;
-
+use game_features::character;
 fn main() {
-    let item1 = game_features::character::item_maker::gen_item_from_file("iron_sword");
+    let item = character::item_maker::new_random_item();
+    //    let berserk = character::entity_maker::make_rand_barbarian();
 
-    println!("{:.?}", item1);
-    io::fancy_display::show_options();
+    println!(
+        "{}",
+        game_features::helper_module::save_n_load::serialize_struct_to_json(&item).unwrap()
+    );
+    game_features::helper_module::save_n_load::write_json_to_file(
+        "random_item.json",
+        &game_features::helper_module::save_n_load::serialize_struct_to_json(&item).unwrap(),
+    )
 }
