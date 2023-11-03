@@ -7,18 +7,10 @@
 
 */
 #![allow(dead_code)]
-/* Macros --------------------------------------------------------------------------------------*/
-macro_rules! str {
-    ($a: expr) => {
-        $a.to_string().as_str().trim().to_string()
-    };
-}
-
 // -----------------------------------------------------------------------------------------
 // CHARACTER CREATION MODULE
 // -----------------------------------------------------------------------------------------
 pub mod character_creation {
-    use super::dices::Dice;
     use rand::{
         distributions::{Distribution, Standard},
         Rng,
@@ -149,8 +141,11 @@ pub mod character_creation {
         spells: Vec<Spells>,
     }
 
-    pub struct EntityMaker {}
-    impl EntityMaker {
+    pub mod entity_maker {
+        use crate::game_features::character_creation::*;
+        use crate::game_features::dice;
+        use crate::game_features::helper_module::str;
+
         pub fn random_name() -> String {
             let possible_names: Vec<String> = vec![
                 str!("Alden"),
@@ -253,13 +248,13 @@ pub mod character_creation {
                 str!("Winford"),
                 str!("Wyatt"),
             ];
-            possible_names[Dice::dn(possible_names.len() as u32 - 1) as usize].clone()
+            possible_names[dice::dn(possible_names.len() as u32 - 1) as usize].clone()
         }
 
         pub fn make_rand_barbarian_hord(count: u32) -> Vec<Entity> {
             let mut hord: Vec<Entity> = Vec::new();
             for _i in 0..count {
-                hord.push(Self::make_rand_barbarian());
+                hord.push(make_rand_barbarian());
             }
             hord
         }
@@ -267,17 +262,17 @@ pub mod character_creation {
         pub fn make_rand_barbarian() -> Entity {
             let barb_abilities: Vec<Abilities> = Vec::new();
             Entity {
-                name: Self::random_name(),
+                name: random_name(),
                 class: Classes::Barbarian,
                 race: rand::random(),
-                lvl: Dice::d20(),
+                lvl: dice::d20(),
 
-                strength: Dice::d20(),
-                dexterity: Dice::d20(),
-                constitution: Dice::d20(),
-                intelligence: Dice::d20(),
-                wisdom: Dice::d20(),
-                charisma: Dice::d20(),
+                strength: dice::d20(),
+                dexterity: dice::d20(),
+                constitution: dice::d20(),
+                intelligence: dice::d20(),
+                wisdom: dice::d20(),
+                charisma: dice::d20(),
 
                 spell_points: 0,
 
@@ -291,59 +286,82 @@ pub mod character_creation {
 // -----------------------------------------------------------------------------------------
 // DICE MODULE
 // -----------------------------------------------------------------------------------------
-pub mod dices {
+pub mod dice {
     use rand::Rng;
 
-    /* Entety struct --------------------------------------------------------------------------------------*/
-    pub struct Dice {}
-    impl Dice {
-        pub fn d4() -> u32 {
-            Self::dn(4)
-        }
-        pub fn d6() -> u32 {
-            Self::dn(6)
-        }
-        pub fn d8() -> u32 {
-            Self::dn(8)
-        }
-        pub fn d12() -> u32 {
-            Self::dn(12)
-        }
-        pub fn d20() -> u32 {
-            Self::dn(20)
-        }
-        pub fn d100() -> u32 {
-            Self::dn(100)
-        }
-        pub fn dn(n: u32) -> u32 {
-            rand::thread_rng().gen_range(1..=n)
-        }
+    pub fn d4() -> u32 {
+        dn(4)
+    }
+    pub fn d6() -> u32 {
+        dn(6)
+    }
+    pub fn d8() -> u32 {
+        dn(8)
+    }
+    pub fn d12() -> u32 {
+        dn(12)
+    }
+    pub fn d20() -> u32 {
+        dn(20)
+    }
+    pub fn d100() -> u32 {
+        dn(100)
+    }
+    pub fn dn(n: u32) -> u32 {
+        rand::thread_rng().gen_range(1..=n)
     }
 }
 
 // -----------------------------------------------------------------------------------------
-// DICE MODULE
+// HELPER MODULE
 // -----------------------------------------------------------------------------------------
 pub mod helper_module {
-    use num_traits::Num;
 
-    pub fn read_string(prompt: &str) -> String {
-        println!("{prompt}");
-        let mut buf = String::new();
-        std::io::stdin().read_line(&mut buf).unwrap();
-        str!(buf)
+    /* Macros --------------------------------------------------------------------------------------*/
+    macro_rules! str {
+        ($a: expr) => {
+            $a.to_string().as_str().trim().to_string()
+        };
     }
+    pub use str;
+    // Structs
+    pub mod io {
+        use num_traits::Num;
 
-    pub fn read_number<T>(prompt: &str) -> T
-    where
-        T: Num + std::str::FromStr,
-        <T as std::str::FromStr>::Err: std::fmt::Debug,
-    {
-        let mut input = read_string(prompt);
-        loop {
-            match input.parse::<T>() {
-                Ok(T) => return input.parse::<T>().unwrap(),
-                Err(T) => input = read_string(prompt),
+        pub fn make_colored(text: &str, color: &str) -> String {
+            match color {
+                "red" => format!("\x1b[31m{}\x1b[0m", text),
+                "green" => format!("\x1b[32m{}\x1b[0m", text),
+                "yellow" => format!("\x1b[33m{}\x1b[0m", text),
+                "blue" => format!("\x1b[34m{}\x1b[0m", text),
+                "magenta" => format!("\x1b[35m{}\x1b[0m", text),
+                "cyan" => format!("\x1b[36m{}\x1b[0m", text),
+                "white" => format!("\x1b[37m{}\x1b[0m", text),
+                _ => text.to_string(),
+            }
+        }
+
+        pub fn read_string(prompt: &str) -> String {
+            println!("{prompt}");
+            let mut buf = String::new();
+            std::io::stdin().read_line(&mut buf).unwrap();
+            str!(buf)
+        }
+
+        pub fn read_number<T>(prompt: &str) -> T
+        where
+            T: Num + std::str::FromStr,
+            <T as std::str::FromStr>::Err: std::fmt::Debug,
+        {
+            let mut input = read_string(prompt);
+            loop {
+                match input.parse::<T>() {
+                    Ok(T) => return input.parse::<T>().unwrap(),
+                    Err(T) => {
+                        println!("{}", make_colored("INVALID", "red"));
+                        input = read_string(prompt);
+                    }
+                }
             }
         }
     }
