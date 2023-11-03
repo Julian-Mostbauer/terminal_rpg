@@ -6,11 +6,11 @@
     -   https://donjon.bin.sh/fantasy/name/#type=set
 
 */
-
+#![allow(dead_code)]
 /* Macros --------------------------------------------------------------------------------------*/
 macro_rules! str {
     ($a: expr) => {
-        $a.to_string()
+        $a.to_string().as_str().trim().to_string()
     };
 }
 
@@ -111,6 +111,22 @@ pub mod character_creation {
             }
         }
     }
+
+    /* Spells --------------------------------------------------------------------------------------*/
+    #[derive(Debug)]
+    pub enum Spells {
+        ErrorSpell,
+        Fireball,
+    }
+
+    impl Distribution<Spells> for Standard {
+        fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Spells {
+            match rng.gen_range(0..=0) {
+                0 => Spells::Fireball,
+                _ => Spells::ErrorSpell,
+            }
+        }
+    }
     /* Entety struct --------------------------------------------------------------------------------------*/
     #[derive(Debug)]
     pub struct Entity {
@@ -127,7 +143,10 @@ pub mod character_creation {
         wisdom: u32,
         charisma: u32,
 
+        spell_points: u32,
+
         abilities: Vec<Abilities>,
+        spells: Vec<Spells>,
     }
 
     pub struct EntityMaker {}
@@ -234,7 +253,7 @@ pub mod character_creation {
                 str!("Winford"),
                 str!("Wyatt"),
             ];
-            possible_names[Dice::dn(possible_names.len() as u32) as usize].clone()
+            possible_names[Dice::dn(possible_names.len() as u32 - 1) as usize].clone()
         }
 
         pub fn make_rand_barbarian_hord(count: u32) -> Vec<Entity> {
@@ -260,7 +279,10 @@ pub mod character_creation {
                 wisdom: Dice::d20(),
                 charisma: Dice::d20(),
 
+                spell_points: 0,
+
                 abilities: barb_abilities,
+                spells: vec![],
             }
         }
     }
@@ -295,6 +317,34 @@ pub mod dices {
         }
         pub fn dn(n: u32) -> u32 {
             rand::thread_rng().gen_range(1..=n)
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------------------
+// DICE MODULE
+// -----------------------------------------------------------------------------------------
+pub mod helper_module {
+    use num_traits::Num;
+
+    pub fn read_string(prompt: &str) -> String {
+        println!("{prompt}");
+        let mut buf = String::new();
+        std::io::stdin().read_line(&mut buf).unwrap();
+        str!(buf)
+    }
+
+    pub fn read_number<T>(prompt: &str) -> T
+    where
+        T: Num + std::str::FromStr,
+        <T as std::str::FromStr>::Err: std::fmt::Debug,
+    {
+        let mut input = read_string(prompt);
+        loop {
+            match input.parse::<T>() {
+                Ok(T) => return input.parse::<T>().unwrap(),
+                Err(T) => input = read_string(prompt),
+            }
         }
     }
 }

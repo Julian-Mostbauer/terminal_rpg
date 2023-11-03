@@ -1,10 +1,7 @@
 mod game_features;
-//use game_features::character_creation;
 use game_features::character_creation::EntityMaker;
+use game_features::helper_module::read_number;
 fn main() {
-    let hord = EntityMaker::make_rand_barbarian_hord(100);
-
-    for ent in hord {
-        println!("{:.?}", ent);
-    }
+    let amount: f32 = read_number("Enter Amount: ");
+    println!("You entered {amount}");
 }
