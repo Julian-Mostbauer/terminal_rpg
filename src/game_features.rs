@@ -153,28 +153,85 @@ pub mod character {
 
     /* Item struct --------------------------------------------------------------------------------------*/
     #[derive(Debug)]
-    enum ItemTypes {
+    pub enum ItemTypes {
+        ErrorItemType,
         Weapon,
         Tool,
     }
+    impl Distribution<ItemTypes> for Standard {
+        fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> ItemTypes {
+            match rng.gen_range(0..=1) {
+                0 => ItemTypes::Weapon,
+                1 => ItemTypes::Weapon,
+                _ => ItemTypes::ErrorItemType,
+            }
+        }
+    }
     #[derive(Debug)]
-    enum ItemSubTypes {
+    pub enum ItemSubTypes {
+        ErrorItemSubType,
         Axe,
         Sword,
         Shield,
         Hamer,
     }
+    impl Distribution<ItemSubTypes> for Standard {
+        fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> ItemSubTypes {
+            match rng.gen_range(0..=3) {
+                0 => ItemSubTypes::Axe,
+                1 => ItemSubTypes::Sword,
+                2 => ItemSubTypes::Shield,
+                3 => ItemSubTypes::Hamer,
+                _ => ItemSubTypes::ErrorItemSubType,
+            }
+        }
+    }
 
     #[derive(Debug)]
     pub struct Item {
+        name: String,
+
         item_type: ItemTypes,
         item_sub_type: ItemSubTypes,
 
         weigth: u32,
         damage: u32,
-        value: u32,
+        cost: u32,
     }
-    impl Item {}
+    impl Item {
+        pub fn new(
+            name_param: String,
+            type_param: ItemTypes,
+            sub_type_param: ItemSubTypes,
+            weight_param: u32,
+            damage_param: u32,
+            cost_param: u32,
+        ) -> Item {
+            Item {
+                name: name_param,
+                item_type: type_param,
+                item_sub_type: sub_type_param,
+                weigth: weight_param,
+                damage: damage_param,
+                cost: cost_param,
+            }
+        }
+    }
+    pub mod item_maker {
+        use crate::game_features::character::*;
+        use crate::game_features::dice;
+        use crate::game_features::helper_module::str;
+        pub fn new_random_item() -> Item {
+            Item::new(
+                str!("a"),
+                rand::random(),
+                rand::random(),
+                dice::d20(),
+                dice::d20(),
+                dice::d100(),
+            )
+        }
+    }
 
     // -----------------------------------------------------------------------------------------
     // Entity Maker MODULE
