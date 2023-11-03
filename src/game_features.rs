@@ -10,7 +10,7 @@
 // -----------------------------------------------------------------------------------------
 // CHARACTER CREATION MODULE
 // -----------------------------------------------------------------------------------------
-pub mod character_creation {
+pub mod character {
     use rand::{
         distributions::{Distribution, Standard},
         Rng,
@@ -139,10 +139,48 @@ pub mod character_creation {
 
         abilities: Vec<Abilities>,
         spells: Vec<Spells>,
+
+        inventory: Inventory,
+    }
+    impl Entity {}
+    /* Inventory struct --------------------------------------------------------------------------------------*/
+    #[derive(Debug)]
+    pub struct Inventory {
+        items: Vec<Item>,
+        weight: u32,
+    }
+    impl Inventory {}
+
+    /* Item struct --------------------------------------------------------------------------------------*/
+    #[derive(Debug)]
+    enum ItemTypes {
+        Weapon,
+        Tool,
+    }
+    #[derive(Debug)]
+    enum ItemSubTypes {
+        Axe,
+        Sword,
+        Shield,
+        Hamer,
     }
 
+    #[derive(Debug)]
+    pub struct Item {
+        item_type: ItemTypes,
+        item_sub_type: ItemSubTypes,
+
+        weigth: u32,
+        damage: u32,
+        value: u32,
+    }
+    impl Item {}
+
+    // -----------------------------------------------------------------------------------------
+    // Entity Maker MODULE
+    // -----------------------------------------------------------------------------------------
     pub mod entity_maker {
-        use crate::game_features::character_creation::*;
+        use crate::game_features::character::*;
         use crate::game_features::dice;
         use crate::game_features::helper_module::str;
 
@@ -261,6 +299,10 @@ pub mod character_creation {
 
         pub fn make_rand_barbarian() -> Entity {
             let barb_abilities: Vec<Abilities> = Vec::new();
+            let barb_inventory: Inventory = Inventory {
+                items: Vec::new(),
+                weight: 0,
+            };
             Entity {
                 name: random_name(),
                 class: Classes::Barbarian,
@@ -278,6 +320,8 @@ pub mod character_creation {
 
                 abilities: barb_abilities,
                 spells: vec![],
+
+                inventory: barb_inventory,
             }
         }
     }
@@ -320,7 +364,7 @@ pub mod helper_module {
     /* Macros --------------------------------------------------------------------------------------*/
     macro_rules! str {
         ($a: expr) => {
-            $a.to_string().as_str().trim().to_string()
+            $a.to_string().trim().to_string()
         };
     }
     pub use str;
@@ -328,17 +372,33 @@ pub mod helper_module {
     pub mod io {
         use num_traits::Num;
 
-        pub fn make_colored(text: &str, color: &str) -> String {
+        use crate::game_features::helper_module;
+
+        pub enum Colors {
+            Red,
+            Green,
+            Yellow,
+            Blue,
+            Magenta,
+            Cyan,
+            White,
+        }
+
+        pub fn make_colored(text: &str, color: Colors) -> String {
             match color {
-                "red" => format!("\x1b[31m{}\x1b[0m", text),
-                "green" => format!("\x1b[32m{}\x1b[0m", text),
-                "yellow" => format!("\x1b[33m{}\x1b[0m", text),
-                "blue" => format!("\x1b[34m{}\x1b[0m", text),
-                "magenta" => format!("\x1b[35m{}\x1b[0m", text),
-                "cyan" => format!("\x1b[36m{}\x1b[0m", text),
-                "white" => format!("\x1b[37m{}\x1b[0m", text),
-                _ => text.to_string(),
+                Colors::Red => format!("\x1b[31m{}\x1b[0m", text),
+                Colors::Green => format!("\x1b[32m{}\x1b[0m", text),
+                Colors::Yellow => format!("\x1b[33m{}\x1b[0m", text),
+                Colors::Blue => format!("\x1b[34m{}\x1b[0m", text),
+                Colors::Magenta => format!("\x1b[35m{}\x1b[0m", text),
+                Colors::Cyan => format!("\x1b[36m{}\x1b[0m", text),
+                Colors::White => format!("\x1b[37m{}\x1b[0m", text),
             }
+        }
+
+        pub fn reapeat_str(text: &str, amount: usize) -> String {
+            let char_collection: Vec<&str> = vec![text; amount];
+            char_collection.concat()
         }
 
         pub fn read_string(prompt: &str) -> String {
@@ -358,10 +418,29 @@ pub mod helper_module {
                 match input.parse::<T>() {
                     Ok(T) => return input.parse::<T>().unwrap(),
                     Err(T) => {
-                        println!("{}", make_colored("INVALID", "red"));
+                        println!(
+                            "{}",
+                            make_colored("INVALID", helper_module::io::Colors::Red)
+                        );
                         input = read_string(prompt);
                     }
                 }
+            }
+        }
+
+        pub mod fancy_display {
+            use crate::game_features::helper_module::io::{self, reapeat_str};
+
+            pub fn show_options() {
+                println!(
+                    "{}",
+                    io::make_colored(&reapeat_str("-", 50), io::Colors::Red)
+                );
+                println!(" todo ");
+                println!(
+                    "{}",
+                    io::make_colored(&reapeat_str("-", 50), io::Colors::Red)
+                );
             }
         }
     }
