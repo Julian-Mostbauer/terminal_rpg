@@ -17,7 +17,7 @@ pub mod character {
     use serde::{Deserialize, Serialize};
     use uuid::Uuid;
     /* Races --------------------------------------------------------------------------------------*/
-    #[derive(Debug, Deserialize, Serialize)]
+    #[derive(Debug, Deserialize, Serialize, Clone)]
     pub enum Races {
         ErrorRace,
         Human,
@@ -49,7 +49,7 @@ pub mod character {
     }
 
     /* Classes --------------------------------------------------------------------------------------*/
-    #[derive(Debug, Deserialize, Serialize)]
+    #[derive(Debug, Deserialize, Serialize, Clone)]
     pub enum Classes {
         ErrorClass,
         Barbarian,
@@ -120,6 +120,22 @@ pub mod character {
         }
     }
     /* Entity struct --------------------------------------------------------------------------------------*/
+    pub type EntityTuple = (
+        String,
+        Races,
+        Classes,
+        u32,
+        u32,
+        u32,
+        u32,
+        u32,
+        u32,
+        u32,
+        u32,
+        Vec<Abilities>,
+        Vec<Spells>,
+        Inventory,
+    );
     #[derive(Debug, Deserialize, Serialize)]
     pub struct Entity {
         name: String,
@@ -144,8 +160,28 @@ pub mod character {
         pub inventory: Inventory,
     }
     impl Entity {
+        pub fn new(parameters: EntityTuple) -> Entity {
+            Entity {
+                name: parameters.0.to_string(),
+                id: Uuid::new_v4().as_u128(),
+                race: parameters.1,
+                class: parameters.2,
+                lvl: parameters.3,
+                strength: parameters.4,
+                dexterity: parameters.5,
+                constitution: parameters.6,
+                intelligence: parameters.7,
+                wisdom: parameters.8,
+                charisma: parameters.9,
+                spell_points: parameters.10,
+                abilities: parameters.11,
+                spells: parameters.12,
+                inventory: parameters.13,
+            }
+        }
+
         pub fn obtain_item(&mut self, item: &Item) {
-            self.inventory.add(&item);
+            self.inventory.add(item);
         }
 
         pub fn remove_item(&mut self, item: &Item) {
@@ -159,6 +195,12 @@ pub mod character {
         weight: u32,
     }
     impl Inventory {
+        pub fn new() -> Inventory {
+            Inventory {
+                items: Vec::new(),
+                weight: 0,
+            }
+        }
         pub fn add(&mut self, item: &Item) {
             self.items.push(item.clone());
         }
@@ -293,42 +335,75 @@ pub mod character {
         use crate::game_features::dice;
         use crate::game_features::helper_module::random_names::random_entity_name;
 
-        pub fn new_rand_barbarian_hord(count: u32) -> Vec<Entity> {
+        pub fn new_rand_hord_of_class(class: Classes, count: u32) -> Vec<Entity> {
             let mut hord: Vec<Entity> = Vec::new();
             for _i in 0..count {
-                hord.push(new_rand_barbarian());
+                hord.push(new_rand_of_class(class.clone()));
             }
             hord
         }
 
-        pub fn new_rand_barbarian() -> Entity {
+        pub fn new_rand_of_class(class: Classes) -> Entity {
             let barb_abilities: Vec<Abilities> = Vec::new();
             let barb_inventory: Inventory = Inventory {
                 items: Vec::new(),
                 weight: 0,
             };
-            Entity {
-                name: random_entity_name(),
-                id: Uuid::new_v4().as_u128(),
+            let random_race: Races = rand::random();
 
-                class: Classes::Barbarian,
-                race: rand::random(),
-                lvl: dice::d20(),
-
-                strength: dice::d20(),
-                dexterity: dice::d20(),
-                constitution: dice::d20(),
-                intelligence: dice::d20(),
-                wisdom: dice::d20(),
-                charisma: dice::d20(),
-
-                spell_points: 0,
-
-                abilities: barb_abilities,
-                spells: Vec::new(),
-
-                inventory: barb_inventory,
+            let barb_spells = Vec::new();
+            let parameters: EntityTuple = (
+                random_entity_name(),
+                random_race,
+                class,
+                dice::d20(),
+                dice::d20(),
+                dice::d20(),
+                dice::d20(),
+                dice::d20(),
+                dice::d20(),
+                dice::d20(),
+                0,
+                barb_abilities,
+                barb_spells,
+                barb_inventory,
+            );
+            Entity::new(parameters)
+        }
+        pub fn new_rand_hord_of_race(race: Races, count: u32) -> Vec<Entity> {
+            let mut hord: Vec<Entity> = Vec::new();
+            for _i in 0..count {
+                hord.push(new_rand_of_race(race.clone()));
             }
+            hord
+        }
+
+        pub fn new_rand_of_race(race: Races) -> Entity {
+            let barb_abilities: Vec<Abilities> = Vec::new();
+            let barb_inventory: Inventory = Inventory {
+                items: Vec::new(),
+                weight: 0,
+            };
+            let random_class: Classes = rand::random();
+
+            let barb_spells = Vec::new();
+            let parameters: EntityTuple = (
+                random_entity_name(),
+                race,
+                random_class,
+                dice::d20(),
+                dice::d20(),
+                dice::d20(),
+                dice::d20(),
+                dice::d20(),
+                dice::d20(),
+                dice::d20(),
+                0,
+                barb_abilities,
+                barb_spells,
+                barb_inventory,
+            );
+            Entity::new(parameters)
         }
     }
 }
@@ -630,6 +705,55 @@ pub mod helper_module {
 
         pub fn save_obj<T: serde::ser::Serialize>(file_path: &str, obj: &T) {
             write_json_to_file(file_path, serialize_struct_to_json(&obj).unwrap().as_str());
+        }
+    }
+}
+
+pub mod toolbox {
+    use crate::game_features::character::*;
+    use crate::game_features::helper_module::save_n_load::load_struct_from_json;
+
+    pub const GOLDSWORD: &str =
+        r"C:\Users\julia\OneDrive\Dokumente\GitHub\terminal_rpg\src\assets\items\gold_sword.json";
+    pub const BERSERK: &str = r"C:\Users\julia\OneDrive\Dokumente\GitHub\terminal_rpg\src\assets\saved_characters\random_berserker.json";
+    pub const IRONSWORD: &str = r"C:\Users\julia\OneDrive\Dokumente\GitHub\terminal_rpg\src\assets\saved_characters\iron_sword.json";
+
+    pub fn load_preset_entity(preset: &str) -> Entity {
+        match load_struct_from_json(preset) {
+            Ok(item) => item,
+            Err(_e) => {
+                let params: EntityTuple = (
+                    "ERROR ENTITY".to_string(),
+                    Races::ErrorRace,
+                    Classes::ErrorClass,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    Vec::new(),
+                    Vec::new(),
+                    Inventory::new(),
+                );
+                Entity::new(params)
+            }
+        }
+    }
+
+    pub fn load_preset_item(preset: &str) -> Item {
+        match load_struct_from_json(preset) {
+            Ok(item) => item,
+            Err(_e) => Item::new(
+                "ERROR ITEM".to_string(),
+                ItemTypes::ErrorItemType,
+                ItemSubTypes::ErrorItemSubType,
+                0,
+                0,
+                0,
+            ),
         }
     }
 }
