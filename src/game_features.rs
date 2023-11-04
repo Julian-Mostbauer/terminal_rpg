@@ -15,6 +15,7 @@ pub mod character {
     use rand::distributions::{Distribution, Standard};
     use rand::Rng;
     use serde::{Deserialize, Serialize};
+    use uuid::Uuid;
     /* Races --------------------------------------------------------------------------------------*/
     #[derive(Debug, Deserialize, Serialize)]
     pub enum Races {
@@ -118,10 +119,11 @@ pub mod character {
             }
         }
     }
-    /* Entety struct --------------------------------------------------------------------------------------*/
+    /* Entity struct --------------------------------------------------------------------------------------*/
     #[derive(Debug, Deserialize, Serialize)]
     pub struct Entity {
         name: String,
+        id: u128,
 
         race: Races,
         class: Classes,
@@ -139,19 +141,34 @@ pub mod character {
         abilities: Vec<Abilities>,
         spells: Vec<Spells>,
 
-        inventory: Inventory,
+        pub inventory: Inventory,
     }
-    impl Entity {}
+    impl Entity {
+        pub fn obtain_item(&mut self, item: &Item) {
+            self.inventory.add(&item);
+        }
+
+        pub fn remove_item(&mut self, item: &Item) {
+            self.inventory.remove_by_id(item.id);
+        }
+    }
     /* Inventory struct --------------------------------------------------------------------------------------*/
     #[derive(Debug, Deserialize, Serialize)]
     pub struct Inventory {
-        items: Vec<Item>,
+        pub items: Vec<Item>,
         weight: u32,
     }
-    impl Inventory {}
+    impl Inventory {
+        pub fn add(&mut self, item: &Item) {
+            self.items.push(item.clone());
+        }
+        pub fn remove_by_id(&mut self, id: u128) {
+            self.items.retain(|item| item.id != id);
+        }
+    }
 
     /* Item Types --------------------------------------------------------------------------------------*/
-    #[derive(Debug, Deserialize, Serialize)]
+    #[derive(Debug, Deserialize, Serialize, Clone)]
     pub enum ItemTypes {
         ErrorItemType,
         Weapon,
@@ -169,7 +186,7 @@ pub mod character {
         }
     }
     /* Item Sub Types --------------------------------------------------------------------------------------*/
-    #[derive(Debug, Deserialize, Serialize)]
+    #[derive(Debug, Deserialize, Serialize, Clone)]
     pub enum ItemSubTypes {
         ErrorItemSubType,
         Axe,
@@ -190,10 +207,10 @@ pub mod character {
         }
     }
     /* Item struct --------------------------------------------------------------------------------------*/
-    #[derive(Debug, Deserialize, Serialize)]
+    #[derive(Debug, Deserialize, Serialize, Clone)]
     pub struct Item {
         name: String,
-
+        id: u128,
         item_type: ItemTypes,
         item_sub_type: ItemSubTypes,
 
@@ -212,12 +229,17 @@ pub mod character {
         ) -> Item {
             Item {
                 name: name_param,
+                id: Uuid::new_v4().as_u128(),
                 item_type: type_param,
                 item_sub_type: sub_type_param,
                 weight: weight_param,
                 damage: damage_param,
                 cost: cost_param,
             }
+        }
+
+        pub fn get_id(&self) -> u128 {
+            self.id
         }
     }
     // -----------------------------------------------------------------------------------------
@@ -271,15 +293,15 @@ pub mod character {
         use crate::game_features::dice;
         use crate::game_features::helper_module::random_names::random_entity_name;
 
-        pub fn make_rand_barbarian_hord(count: u32) -> Vec<Entity> {
+        pub fn new_rand_barbarian_hord(count: u32) -> Vec<Entity> {
             let mut hord: Vec<Entity> = Vec::new();
             for _i in 0..count {
-                hord.push(make_rand_barbarian());
+                hord.push(new_rand_barbarian());
             }
             hord
         }
 
-        pub fn make_rand_barbarian() -> Entity {
+        pub fn new_rand_barbarian() -> Entity {
             let barb_abilities: Vec<Abilities> = Vec::new();
             let barb_inventory: Inventory = Inventory {
                 items: Vec::new(),
@@ -287,6 +309,8 @@ pub mod character {
             };
             Entity {
                 name: random_entity_name(),
+                id: Uuid::new_v4().as_u128(),
+
                 class: Classes::Barbarian,
                 race: rand::random(),
                 lvl: dice::d20(),
@@ -461,8 +485,28 @@ pub mod helper_module {
         pub fn random_item_name() -> String {
             let object_pre: Vec<String> =
                 vec![str!("Mighty"), str!("Evil"), str!("Godly"), str!("Fierce")];
-            let object_names: Vec<String> =
-                vec![str!("Road"), str!("Sword"), str!("Axe"), str!("Bow")];
+            let object_names: Vec<String> = vec![
+                str!("Road"),
+                str!("Sword"),
+                str!("Axe"),
+                str!("Bow"),
+                str!("Shield"),
+                str!("Potion"),
+                str!("Ring"),
+                str!("Staff"),
+                str!("Scroll"),
+                str!("Dagger"),
+                str!("Helmet"),
+                str!("Amulet"),
+                str!("Gauntlet"),
+                str!("Cloak"),
+                str!("Quiver"),
+                str!("Wand"),
+                str!("Tome"),
+                str!("Bracelet"),
+                str!("Crown"),
+                str!("Robe"),
+            ];
             format!(
                 "{} {}",
                 object_pre[dice::dn(object_pre.len() as u32 - 1) as usize],
@@ -555,7 +599,6 @@ pub mod helper_module {
         use std::error::Error;
         use std::fs;
 
-        //use crate::game_features::character::*;
         use crate::game_features::helper_module;
 
         pub fn read_file(path: &str) -> String {
@@ -581,8 +624,12 @@ pub mod helper_module {
             Ok(j)
         }
 
-        pub fn write_json_to_file(file_name: &str, json: &str) {
-            fs::write(format!("C:\\Users\\julia\\OneDrive\\Dokumente\\GitHub\\terminal_rpg\\src\\assets\\saved_characters\\{}", file_name), json).expect("Unable to write file");
+        pub fn write_json_to_file(file_path: &str, json: &str) {
+            fs::write(file_path, json).expect("Unable to write file");
+        }
+
+        pub fn save_obj<T: serde::ser::Serialize>(file_path: &str, obj: &T) {
+            write_json_to_file(file_path, serialize_struct_to_json(&obj).unwrap().as_str());
         }
     }
 }

@@ -1,8 +1,9 @@
 {
-    "name": "gold sword",
-    "item_type": "Weapon",
-    "item_sub_type": "Sword",
-    "weight": 20,
-    "damage": 7,
-    "cost" : 500
+  "name": "gold sword",
+  "id": 0,
+  "item_type": "Weapon",
+  "item_sub_type": "Sword",
+  "weight": 20,
+  "damage": 7,
+  "cost": 500
 }

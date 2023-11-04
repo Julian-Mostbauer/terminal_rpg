@@ -1,9 +1,9 @@
 {
-    "name": "iron sword",
-    "item_type": "Weapon",
-    "item_sub_type": "Sword",
-    "weight": 15,
-    "damage": 5,
-    "cost" : 50
-
+  "name": "iron sword",
+  "id": 1,
+  "item_type": "Weapon",
+  "item_sub_type": "Sword",
+  "weight": 15,
+  "damage": 5,
+  "cost": 50
 }
