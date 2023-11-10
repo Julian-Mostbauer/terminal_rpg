@@ -6,6 +6,7 @@
     -   https://donjon.bin.sh/fantasy/name/#type=set
     -   https://reintech.io/blog/working-with-json-in-rust
     -   https://github.com/ratatui-org/ratatui
+    -   https://ratatui.rs/tutorial/counter-app/single-function.html
 
 */
 #![allow(dead_code)]
